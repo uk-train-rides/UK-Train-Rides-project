@@ -10,10 +10,6 @@
 | Sama  |           |
 | Shahd |           |
 
-
-
-
-
-
+## Star Schema
 
 ![Star schema](docs/star_schema.png)
