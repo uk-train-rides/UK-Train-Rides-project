@@ -2,13 +2,15 @@
 
 ## Graduation Project (DEPI)
 
-| Name  | Segment |
-| ----- | ------- |
-| Aly   | Python  |
-| Mahy  |         |
-| Peter |         |
-| Sama  |         |
-| Shahd |         |
+| Name  | Segment   |
+| ----- | --------- |
+| Aly   | Python 🐍 |
+| Mahy  |           |
+| Peter |           |
+| Sama  |           |
+| Shahd |           |
+
+
 
 
 
