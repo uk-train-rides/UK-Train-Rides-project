@@ -1,0 +1,37 @@
+sale_details_id,purchase_type,payment_method,ticket_class,ticket_type
+1,Online,Contactless,First Class,Advance
+2,Online,Contactless,First Class,Anytime
+3,Online,Contactless,First Class,Off-Peak
+4,Online,Contactless,Standard,Advance
+5,Online,Contactless,Standard,Anytime
+6,Online,Contactless,Standard,Off-Peak
+7,Online,Credit Card,First Class,Advance
+8,Online,Credit Card,First Class,Anytime
+9,Online,Credit Card,First Class,Off-Peak
+10,Online,Credit Card,Standard,Advance
+11,Online,Credit Card,Standard,Anytime
+12,Online,Credit Card,Standard,Off-Peak
+13,Online,Debit Card,First Class,Advance
+14,Online,Debit Card,First Class,Anytime
+15,Online,Debit Card,First Class,Off-Peak
+16,Online,Debit Card,Standard,Advance
+17,Online,Debit Card,Standard,Anytime
+18,Online,Debit Card,Standard,Off-Peak
+19,Station,Contactless,First Class,Advance
+20,Station,Contactless,First Class,Anytime
+21,Station,Contactless,First Class,Off-Peak
+22,Station,Contactless,Standard,Advance
+23,Station,Contactless,Standard,Anytime
+24,Station,Contactless,Standard,Off-Peak
+25,Station,Credit Card,First Class,Advance
+26,Station,Credit Card,First Class,Anytime
+27,Station,Credit Card,First Class,Off-Peak
+28,Station,Credit Card,Standard,Advance
+29,Station,Credit Card,Standard,Anytime
+30,Station,Credit Card,Standard,Off-Peak
+31,Station,Debit Card,First Class,Advance
+32,Station,Debit Card,First Class,Anytime
+33,Station,Debit Card,First Class,Off-Peak
+34,Station,Debit Card,Standard,Advance
+35,Station,Debit Card,Standard,Anytime
+36,Station,Debit Card,Standard,Off-Peak
