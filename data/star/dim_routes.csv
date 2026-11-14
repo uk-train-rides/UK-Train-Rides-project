@@ -1,0 +1,65 @@
+route_id,departure_station,arrival_station
+1,Birmingham New Street,Coventry
+2,Birmingham New Street,Edinburgh Waverley
+3,Birmingham New Street,Liverpool Lime Street
+4,Birmingham New Street,London Euston
+5,Birmingham New Street,London Kings Cross
+6,Birmingham New Street,London Paddington
+7,Birmingham New Street,London St Pancras
+8,Birmingham New Street,Manchester Piccadilly
+9,Birmingham New Street,Nuneaton
+10,Birmingham New Street,Reading
+11,Birmingham New Street,Stafford
+12,Birmingham New Street,Tamworth
+13,Birmingham New Street,Wolverhampton
+14,Birmingham New Street,York
+15,Bristol Temple Meads,Cardiff Central
+16,Edinburgh Waverley,London Kings Cross
+17,Liverpool Lime Street,Birmingham New Street
+18,Liverpool Lime Street,Crewe
+19,Liverpool Lime Street,Leeds
+20,Liverpool Lime Street,London Euston
+21,Liverpool Lime Street,London Paddington
+22,Liverpool Lime Street,London St Pancras
+23,Liverpool Lime Street,Manchester Piccadilly
+24,Liverpool Lime Street,Sheffield
+25,London Euston,Birmingham New Street
+26,London Euston,Manchester Piccadilly
+27,London Euston,Oxford
+28,London Euston,York
+29,London Kings Cross,Edinburgh Waverley
+30,London Kings Cross,Liverpool Lime Street
+31,London Kings Cross,York
+32,London Paddington,Liverpool Lime Street
+33,London Paddington,London Waterloo
+34,London Paddington,Manchester Piccadilly
+35,London Paddington,Oxford
+36,London Paddington,Reading
+37,London St Pancras,Birmingham New Street
+38,London St Pancras,Leicester
+39,London St Pancras,Wolverhampton
+40,Manchester Piccadilly,Leeds
+41,Manchester Piccadilly,Liverpool Lime Street
+42,Manchester Piccadilly,London Euston
+43,Manchester Piccadilly,London Kings Cross
+44,Manchester Piccadilly,London Paddington
+45,Manchester Piccadilly,London St Pancras
+46,Manchester Piccadilly,Nottingham
+47,Manchester Piccadilly,Sheffield
+48,Manchester Piccadilly,Warrington
+49,Manchester Piccadilly,York
+50,Oxford,Bristol Temple Meads
+51,Reading,Birmingham New Street
+52,Reading,Didcot
+53,Reading,Liverpool Lime Street
+54,Reading,London Paddington
+55,Reading,Oxford
+56,Reading,Swindon
+57,York,Birmingham New Street
+58,York,Doncaster
+59,York,Durham
+60,York,Edinburgh Waverley
+61,York,Leeds
+62,York,Liverpool Lime Street
+63,York,Peterborough
+64,York,Wakefield
