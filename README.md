@@ -2,13 +2,13 @@
 
 ## Graduation Project (DEPI)
 
-| Name  | Segment   |
-| ----- | --------- |
-| Aly   | Python 🐍 |
-| Mahy  | SQL       |
-| Peter | Looker    |
-| Sama  | Tableau   |
-| Shahd | Power BI  |
+| Name    | Segment   |
+| ------- | --------- |
+| Aly     | Python 🐍 |
+| Mahitab | SQL       |
+| Peter   | Looker    |
+| Sama    | Tableau   |
+| Shahd   | Power BI  |
 
 ## Star Schema
 
