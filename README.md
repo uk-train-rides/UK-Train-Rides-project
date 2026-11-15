@@ -5,10 +5,10 @@
 | Name  | Segment   |
 | ----- | --------- |
 | Aly   | Python 🐍 |
-| Mahy  |           |
-| Peter |           |
-| Sama  |           |
-| Shahd |           |
+| Mahy  | SQL       |
+| Peter | Looker    |
+| Sama  | Tableau   |
+| Shahd | Power BI  |
 
 ## Star Schema
 
