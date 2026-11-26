@@ -1,0 +1,293 @@
+USE UK_TrainRides 
+
+CREATE TABLE staging_rides (
+transaction_id      NVARCHAR(50) ,
+date_of_purchase    NVARCHAR(20) ,
+time_of_purchase    NVARCHAR(20) ,
+purchase_type       NVARCHAR(20) ,
+payment_method      NVARCHAR(30) ,
+railcard            NVARCHAR(30) ,
+ticket_class        NVARCHAR(30) ,
+ticket_type         NVARCHAR(30) ,
+price               INT ,
+departure_station   NVARCHAR(60) ,
+arrival_destintion  NVARCHAR(60) ,
+date_of_journey     NVARCHAR(20) ,
+departure_time      NVARCHAR(20) ,
+arrival_time        NVARCHAR(20) ,
+actual_arrival_time NVARCHAR(20) ,
+journey_status      NVARCHAR(20) ,
+reason_for_delay    NVARCHAR(40) ,
+refund_request      NVARCHAR(10) ,
+)
+
+-- Test the data
+INSERT INTO staging_rides
+
+SELECT * 
+FROM import_railwayM 
+
+SELECT COUNT(*) FROM staging_rides
+
+SELECT COUNT(DISTINCT transaction_id) 
+FROM staging_rides
+
+SELECT COUNT(*) 
+FROM staging_rides
+WHERE actual_arrival_time IS NULL OR actual_arrival_time = '' 
+
+SELECT journey_status , COUNT(*)
+FROM staging_rides
+GROUP BY journey_status 
+
+CREATE TABLE Dim_Purchase_Date (
+Purchase_Date_ID    INT IDENTITY(1,1) PRIMARY KEY ,
+Full_Date           DATE NOT NULL UNIQUE ,
+[Day]               INT ,
+[Month]             INT ,
+[Year]              INT ,
+[Quarter]           INT , 
+)
+-- DROP TABLE Dim_Purchase_Date
+
+INSERT INTO Dim_Purchase_Date(Full_Date , [Day] , [Month] , [Year] , [Quarter])
+SELECT DISTINCT PurchaseDate , DAY(PurchaseDate) , Month(PurchaseDate) , DATEPART(QUARTER , PurchaseDate), YEAR(PurchaseDate)
+FROM(SELECT TRY_CONVERT(date , date_of_purchase , 101 ) AS PurchaseDate 
+     FROM staging_rides )AS  PConvertDates 
+ORDER BY PurchaseDate 
+
+CREATE TABLE Dim_Journey_Date (
+Journey_Date_ID INT IDENTITY(1,1) PRIMARY KEY ,
+Full_Date       DATE NOT NULL UNIQUE,
+[Day]           INT ,
+[Month]         INT ,
+[Year]          INT ,
+[Quarter]       INT 
+)
+
+INSERT INTO Dim_Journey_Date(Full_Date , [Day] , [Month] , [Year] , [Quarter])
+SELECT DISTINCT JourneyDate , DAY(JourneyDate) , Month(JourneyDate) , DATEPART(QUARTER , JourneyDate), YEAR(JourneyDate)
+FROM(SELECT TRY_CONVERT(date , date_of_journey , 101 ) AS JourneyDate
+     FROM staging_rides )AS  JConvertDates 
+ORDER BY JourneyDate 
+
+CREATE TABLE Dim_Purchase (
+PurchaseID     INT IDENTITY(1,1) PRIMARY KEY ,
+Purchase_Type  NVARCHAR(20) NOT NULL ,
+Payment_Method NVARCHAR(30) NOT NULL ,
+CONSTRAINT UQ_Dim_Purchase UNIQUE (Purchase_Type , Payment_Method)
+)
+
+INSERT INTO Dim_Purchase (Purchase_Type , Payment_Method )
+SELECT DISTINCT purchase_type , payment_method
+FROM staging_rides 
+ORDER BY purchase_type , payment_method
+
+-- Test
+SELECT * FROM Dim_Purchase
+
+CREATE TABLE Dim_Ticket (
+Ticket_ID    INT IDENTITY(1,1) PRIMARY KEY ,
+Railcard     NVARCHAR(30) NOT NULL ,
+Ticket_Class NVARCHAR(30) NOT NULL ,
+Ticket_Type  NVARCHAR(30) NOT NULL ,
+CONSTRAINT UQ_Dim_Tickit UNIQUE (Railcard , Ticket_Class , Ticket_Type)
+)
+INSERT INTO Dim_Ticket (Railcard , Ticket_Class , Ticket_Type)
+SELECT DISTINCT railcard , ticket_class , ticket_type 
+FROM staging_rides
+ORDER BY railcard , ticket_class , ticket_type
+--Test
+SELECT COUNT(*) FROM Dim_Ticket
+SELECT DISTINCT Railcard FROM Dim_Ticket
+SELECT DISTINCT Ticket_Class FROM Dim_Ticket
+SELECT DISTINCT Ticket_Type FROM Dim_Ticket
+
+ -- DROP TABLE Dim_Ticket
+
+ CREATE TABLE Dim_Route (
+ Route_ID            INT IDENTITY(1,1) PRIMARY KEY ,
+ Departure_station   NVARCHAR(30) ,
+ Arrival_Destination NVARCHAR(30) ,
+ CONSTRAINT UQ_Dim_Route UNIQUE (Departure_station , Arrival_Destination)
+ )
+ INSERT INTO Dim_Route(Departure_station , Arrival_Destination)
+ SELECT DISTINCT departure_station , arrival_destintion 
+ FROM staging_rides
+ ORDER BY departure_station , arrival_destintion
+
+CREATE TABLE Dim_Journey(
+Journey_ID           INT IDENTITY(1,1) PRIMARY KEY ,
+Departure_Time       TIME NOT NULL ,
+Arrival_Time         TIME NOT NULL ,
+Actual_Arrival_Time  TIME ,
+Journey_Status       NVARCHAR(20) NOT NULL ,
+Reason_for_Delay     NVARCHAR(20) NOT NULL ,
+)
+INSERT INTO Dim_Journey (Departure_Time ,Arrival_Time,Actual_Arrival_Time, Journey_Status,Reason_for_Delay)
+SELECT DISTINCT TRY_CONVERT(TIME , departure_time),
+                TRY_CONVERT(TIME , arrival_time),
+                TRY_CONVERT(TIME , NULLIF(actual_arrival_time , '')),
+                journey_status , reason_for_delay
+FROM staging_rides 
+
+CREATE TABLE Fact_TrainRides (
+Transaction_ID    NVARCHAR(50) NOT NULL PRIMARY KEY ,
+Purchase_Date_ID  INT NOT NULL ,
+Journey_Date_ID   INT NOT NULL ,
+Purchase_ID       INT NOT NULL ,
+Ticket_ID         INT NOT NULL ,
+Route_ID          INT NOT NULL ,
+Journey_ID        INT NOT NULL ,
+Price             INT NOT NULL ,
+Purchase_Time     TIME NULL ,
+Refund_Request    TINYINT NOT NULL ,
+CONSTRAINT FK_Fact_PurchaseDate FOREIGN KEY (Purchase_Date_ID) REFERENCES Dim_Purchase_Date(Purchase_Date_ID),
+CONSTRAINT FK_Fact_JourneyDate FOREIGN KEY (Journey_Date_ID) REFERENCES Dim_Journey_Date(Journey_Date_ID),
+CONSTRAINT FK_Fact_Purchase FOREIGN KEY (Purchase_ID) REFERENCES Dim_Purchase(PurchaseID),
+CONSTRAINT FK_Fact_Ticket FOREIGN KEY (Ticket_ID) REFERENCES Dim_Ticket(Ticket_ID),
+CONSTRAINT FK_Fact_Route FOREIGN KEY (Route_ID) REFERENCES Dim_Route(Route_ID),
+CONSTRAINT FK_Fact_Journey FOREIGN KEY (Journey_ID) REFERENCES Dim_Journey(Journey_ID),
+)
+INSERT INTO Fact_TrainRides (Transaction_ID , Purchase_Date_ID ,Journey_Date_ID, Purchase_ID,
+                              Ticket_ID ,Route_ID ,Journey_ID, Price,Purchase_Time, Refund_Request)
+SELECT S.transaction_id , PD.Purchase_Date_ID , JD.Journey_Date_ID , P.PurchaseID , T.Ticket_ID , 
+       R.Route_ID , J.Journey_ID , S.price , TRY_CONVERT(TIME , S.time_of_purchase),
+       CASE WHEN S.refund_request = 'YES' THEN 1 ELSE 0 END 
+FROM staging_rides S 
+JOIN Dim_Purchase_Date PD ON PD.Full_Date = TRY_CONVERT(date , s.date_of_purchase,101)
+JOIN Dim_Journey_Date  JD ON JD.Full_Date = TRY_CONVERT(date , s.date_of_journey ,101)
+JOIN Dim_Purchase       P ON P.Purchase_Type = s.purchase_type AND P.Payment_Method = s.payment_method
+JOIN Dim_Ticket         T ON T.Railcard = s.railcard AND T.Ticket_Class = S.ticket_class AND T.Ticket_Type = S.ticket_type
+JOIN Dim_Route          R ON R.Departure_station = S.departure_station AND R.Arrival_Destination = S.arrival_destintion
+JOIN Dim_Journey        J ON J.Departure_Time = TRY_CONVERT(TIME , S.departure_time) 
+                         AND J.Arrival_Time = TRY_CONVERT(TIME , S.arrival_time) 
+                         AND J.Journey_Status = S.journey_status 
+                         AND J.Reason_for_Delay = S.reason_for_delay
+                         AND (J.Actual_Arrival_Time = TRY_CONVERT(TIME , NULLIF(S.actual_arrival_time,''))
+                         OR (J.Actual_Arrival_Time IS NULL AND NULLIF(S.actual_arrival_time , '') IS NULL)) 
+-- =========================
+-- Index :
+-- =========================
+CREATE NONCLUSTERED INDEX IX_Fact_PurcahaseDate ON Fact_TrainRides (Purchase_Date_ID)
+CREATE NONCLUSTERED INDEX IX_Fact_JourneyDate   ON Fact_TrainRides (Journey_Date_ID)
+CREATE NONCLUSTERED INDEX IX_Fact_Purcahase     ON Fact_TrainRides (Purchase_ID)
+CREATE NONCLUSTERED INDEX IX_Fact_Ticket        ON Fact_TrainRides (Ticket_ID)
+CREATE NONCLUSTERED INDEX IX_Fact_Route         ON Fact_TrainRides (Route_ID)
+CREATE NONCLUSTERED INDEX IX_Fact_Journey       ON Fact_TrainRides (Journey_ID)
+
+--=================================
+-- Views :
+--=================================
+-- Rides Full Details
+CREATE VIEW VW_Rides_Full_Details AS 
+SELECT FT.Transaction_ID , FT.Journey_Date_ID , R.Departure_station , R.Arrival_Destination , 
+       T.Ticket_Class , T.Ticket_Type , P.Purchase_Type , J.Journey_Status , J.Reason_for_Delay,
+       FT.Price , FT.Route_ID
+FROM Fact_TrainRides FT 
+JOIN Dim_Route R    ON FT.Route_ID = R.Route_ID
+JOIN Dim_Ticket T   ON FT.Ticket_ID = T.Ticket_ID
+JOIN Dim_Purchase P ON FT.Purchase_ID = P.PurchaseID
+JOIN Dim_Journey  J  ON FT.Journey_ID = J.Journey_ID
+
+-- Route Performance Summary
+CREATE VIEW VW_Route_Performance AS 
+SELECT R.Departure_station , R.Arrival_Destination , 
+       COUNT(FT.Transaction_ID) AS[Total Journeys] , 
+       SUM(CASE WHEN J.Journey_Status  = 'Delay' THEN 1 ELSE 0 END) AS [Delayed_Journeys],
+       SUM(CASE WHEN FT.Refund_Request = 1 THEN 1 ELSE 0 END) AS [Refund_Requests]
+FROM Fact_TrainRides FT 
+JOIN Dim_Route R   ON FT.Route_ID = R.Route_ID
+JOIN Dim_Journey J ON FT.Journey_ID = J.Journey_ID
+GROUP BY R.Departure_station , R.Arrival_Destination
+
+SELECT TOP 10 * 
+FROM VW_Route_Performance
+--===========================
+-- Queries 
+--===========================
+-- Revenue By Ticket Class
+SELECT COUNT(*) ,T.Ticket_Class , SUM(FT.Price) AS [Total Revenue] , AVG(FT.Price) AS [Average Price]
+FROM Dim_Ticket T JOIN Fact_TrainRides FT ON T.Ticket_ID = FT.Ticket_ID
+GROUP BY T.Ticket_Class
+ORDER BY [Total Revenue] DESC 
+
+-- Revenue By Ticket Type
+SELECT COUNT(*) AS [Number Of Journey] , T.Ticket_Type , SUM(FT.Price) AS [Total Revenue] , AVG(FT.Price) AS [Average Price]
+FROM Fact_TrainRides FT JOIN Dim_Ticket T ON FT.Ticket_ID = T.Ticket_ID 
+GROUP BY T.Ticket_Type
+ORDER BY [Total Revenue] DESC 
+
+-- Top 10 Revenue-Generating Routes 
+SELECT TOP 10 R.Departure_station , R.Arrival_Destination , COUNT(*) AS [Total Rides] ,
+       SUM(FT.Price) AS [Total Revenue] , 
+       SUM(FT.Price) *100.0 / SUM(SUM(FT.Price)) OVER() AS [Revenue PCT] 
+FROM Fact_TrainRides FT JOIN Dim_Route R ON FT.Route_ID = R.Route_ID
+GROUP BY R.Departure_station , R.Arrival_Destination
+ORDER BY [Total Revenue] DESC 
+
+-- Departure Stations Ranked by Revenue 
+SELECT RANK() OVER (ORDER BY SUM(FT.Price) DESC) AS [Revenue Rank] ,
+       COUNT(*) AS [Total Rides] , SUM(FT.Price) AS [Total Revenue] ,
+       AVG(FT.Price) AS[Avg Revenue]
+FROM Fact_TrainRides FT JOIN Dim_Route R ON FT.Route_ID = R.Route_ID
+GROUP BY R.Departure_station 
+ORDER BY [Revenue Rank]
+
+-- Ticket Price Tiers 
+SELECT [Price Tier] , COUNT(*) AS [Total Rides] ,SUM(Price) AS [Total Revenue] ,
+       AVG(Price) AS [Avg Price] ,
+       SUM(Price)*100.0 / SUM(SUM(Price)) OVER() AS [Revenue PCT]
+FROM(
+     SELECT Price , 
+            CASE
+               WHEN Price >= 50 THEN 'Premium' 
+               WHEN Price >= 15 THEN 'Standard'
+               ELSE 'Budget'
+            END AS [Price Tier]
+     FROM Fact_TrainRides
+) AS Tiered
+GROUP BY [Price Tier]
+ORDER BY [Total Revenue] DESC;
+
+
+
+
+
+
+
+
+
+
+
+--==================================
+-- Stored Prosedure:
+--==================================
+-- Journey Status Samary :
+CREATE PROCEDURE SP_Journey_Status AS
+BEGIN 
+    SELECT J.Journey_Status , COUNT(FT.Transaction_ID) AS [Total Journeys] , SUM(FT.Price) AS [Total Revenue]
+    FROM Fact_TrainRides FT JOIN Dim_Journey J ON FT.Journey_ID = J.Journey_ID
+    GROUP BY J.Journey_Status 
+END
+
+-- Refund Requests by Journey Status :
+CREATE PROCEDURE SP_Refund_by_Status AS 
+BEGIN 
+    SELECT J.Journey_Status , COUNT(FT.Transaction_ID) AS [Refund Count] , SUM(FT.Price) AS [Refund Amount]
+    FROM Fact_TrainRides FT JOIN Dim_Journey J ON FT.Journey_ID = J.Journey_ID
+    WHERE FT.Refund_Request = 'Yes'
+    GROUP BY J.Journey_Status
+END 
+
+ALTER PROCEDURE SP_Refund_by_Status AS 
+BEGIN 
+    SELECT J.Journey_Status , COUNT(FT.Transaction_ID) AS [Refund Count] , SUM(FT.Price) AS [Refund Amount]
+    FROM Fact_TrainRides FT JOIN Dim_Journey J ON FT.Journey_ID = J.Journey_ID
+    WHERE FT.Refund_Request = 1
+    GROUP BY J.Journey_Status
+END 
+
+EXEC SP_Journey_Status
+EXEC SP_Refund_by_Status 
+
