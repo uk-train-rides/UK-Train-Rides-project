@@ -68,6 +68,9 @@ UK-Train-Rides-project/
 ├── src/
 │   ├── __init__.py
 │   └── plotting.py
+├── SQL/
+|   ├── Star Schema.draw.io
+|   └── UK_Train_Rides.sql
 ├── .gitignore
 ├── README.md
 └── requirements.txt
