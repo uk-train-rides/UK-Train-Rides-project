@@ -69,7 +69,7 @@ UK-Train-Rides-project/
 │   ├── __init__.py
 │   └── plotting.py
 ├── SQL/
-|   ├── Star Schema.draw.io
+|   ├── Star Schema.drawio
 |   └── UK_Train_Rides.sql
 ├── .gitignore
 ├── README.md
